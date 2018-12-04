@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { FixedSizeGrid, VariableSizeGrid } from 'react-window';
+import { VariableSizeGrid } from 'react-window';
 import CodeBlock from '../../components/CodeBlock';
 import ProfiledExample from '../../components/ProfiledExample';
 
@@ -55,7 +55,7 @@ export default function() {
             rowHeight={index => rowHeights[index]}
             width={600}
             stickyColumns={2}
-            stickyRows={2}
+            stickyRows={3}
           >
             {Cell}
           </VariableSizeGrid>

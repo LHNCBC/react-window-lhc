@@ -9,6 +9,8 @@ type itemSize = number | ((index: number) => number);
 type ItemKeyGetter = (indices: {
   columnIndex: number,
   rowIndex: number,
+  stickyRow?: boolean,
+  stickyCol?: boolean,
 }) => any;
 
 type RenderComponentProps<T> = {|
@@ -114,14 +116,11 @@ type ValidateProps = (props: Props<any>) => void;
 
 const IS_SCROLLING_DEBOUNCE_INTERVAL = 150;
 
-const defaultItemKey: ItemKeyGetter = ({ columnIndex, rowIndex }) => {
-  // const rowKey = stickyRow ? `S${rowIndex}` : `${rowIndex}`;
-  // const colKey = stickyCol ? `S${columnIndex}` : `${columnIndex}`;
-  //
-  // return `${rowKey}:${colKey}`;
-  // return  `${rowIndex}:${columnIndex}`;
-  return `${rowIndex}:${columnIndex}:${Math.random()}`
-}
+const defaultItemKey: ItemKeyGetter = ({ columnIndex, rowIndex, stickyRow, stickyCol}) => {
+  const rowKey = stickyRow ? `S${rowIndex}` : `${rowIndex}`;
+  const colKey = stickyCol ? `S${columnIndex}` : `${columnIndex}`;
+  return `${rowKey}:${colKey}`;
+};
 
 export default function createGridComponent({
   getColumnOffset,
@@ -313,57 +312,87 @@ export default function createGridComponent({
         rowStopIndex
       ] = this._getVerticalRangeToRender();
 
-      console.log('stickyRows:' + stickyRows);
-      console.log('stickyColumns:' + stickyColumns);
-      console.log(rowCount);
-
-
-      //todo: if stickyRows and stickyColumns, create a top-most DIV that always covers the left-top cell.
+      // console.log('stickyRows:' + stickyRows);
+      // console.log('stickyColumns:' + stickyColumns);
+      // console.log(rowCount);
 
       const items = [];
       if (columnCount > 0 && rowCount) {
-
         if (stickyRows) {
+          // there could be multiple sticky rows
           for (
-            let columnIndex = columnStartIndex;
-            columnIndex <= columnStopIndex;
-            columnIndex++
+            let stickyRowIndex = 0;
+            stickyRowIndex < stickyRows;
+            stickyRowIndex++
           ) {
-            items.push(
-              createElement(children, {
-                columnIndex: columnIndex,
-                data: itemData,
-                isScrolling: useIsScrolling ? isScrolling : undefined,
-                key: itemKey({ columnIndex: columnIndex, rowIndex: 0 }),
-                rowIndex: 0,
-                style: this._getItemStyle(0, columnIndex, true, false),
-              })
-            );
+            //if stickyRows and stickyColumns, create top-most DIVs that always covers the left-top cells.
+            if (stickyColumns) {
+              for (
+                let stickyColumnIndex = 0;
+                stickyColumnIndex < stickyColumns;
+                stickyColumnIndex++
+              ) {
+                items.push(
+                  createElement(children, {
+                    columnIndex: stickyColumnIndex,
+                    data: itemData,
+                    isScrolling: useIsScrolling ? isScrolling : undefined,
+                    key: itemKey({ columnIndex: stickyColumnIndex, rowIndex: stickyRowIndex, stickyRow: true, stickyCol: true }),
+                    rowIndex: stickyRowIndex,
+                    style: this._getItemStyle(stickyRowIndex, stickyColumnIndex, true, true),
+                  })
+                );
+              }
+            }
+            // cells in sticky rows
+            for (
+              let columnIndex = columnStartIndex;
+              columnIndex <= columnStopIndex;
+              columnIndex++
+            ) {
+              items.push(
+                createElement(children, {
+                  columnIndex: columnIndex,
+                  data: itemData,
+                  isScrolling: useIsScrolling ? isScrolling : undefined,
+                  key: itemKey({ columnIndex: columnIndex, rowIndex: stickyRowIndex, stickyRow: true }),
+                  rowIndex: stickyRowIndex,
+                  style: this._getItemStyle(stickyRowIndex, columnIndex, true, false),
+                })
+              );
+            }
           }
         }
+
+        // all cells
         for (
           let rowIndex = rowStartIndex;
           rowIndex <= rowStopIndex;
           rowIndex++
         ) {
-          console.log('stickyColumns:' + stickyColumns);
-          console.log(rowIndex);
+          // cell in sticky columns
           if (stickyColumns) {
-            const { scrollLeft, scrollTop } = this.state;
-            console.log("scrollLeft: " + scrollLeft);
-            console.log("scrollTop: " + scrollTop);
+            if (stickyColumns) {
+              for (
+                let stickyColumnIndex = 0;
+                stickyColumnIndex < stickyColumns;
+                stickyColumnIndex++
+              ) {
+                items.push(
+                  createElement(children, {
+                    columnIndex: stickyColumnIndex,
+                    data: itemData,
+                    isScrolling: useIsScrolling ? isScrolling : undefined,
+                    key: itemKey({ columnIndex: stickyColumnIndex, rowIndex, stickyCol: true }),
+                    rowIndex: rowIndex,
+                    style: this._getItemStyle(rowIndex, stickyColumnIndex, false, true),
+                  })
+                );
+              }
+            }
 
-            items.push(
-              createElement(children, {
-                columnIndex: 0,
-                data: itemData,
-                isScrolling: useIsScrolling ? isScrolling : undefined,
-                key: itemKey({ columnIndex: 0, rowIndex }),
-                rowIndex: rowIndex,
-                style: this._getItemStyle(rowIndex, 0, false, true),
-              })
-            );
           }
+          // all other cells in non-sticky columns/rows
           for (
             let columnIndex = columnStartIndex;
             columnIndex <= columnStopIndex;
@@ -535,26 +564,34 @@ export default function createGridComponent({
     _getItemStyle = (rowIndex: number, columnIndex: number, stickyRow: boolean=false, stickyCol: boolean=false): Object => {
       const rowKey = stickyRow ? `S${rowIndex}` : `${rowIndex}`;
       const colKey = stickyCol ? `S${columnIndex}` : `${columnIndex}`;
-
       const key = `${rowKey}:${colKey}`;
 
-      console.log('stickyCol:' + stickyCol.toString())
-      console.log(key)
       const itemStyleCache = this._getItemStyleCache(
         shouldResetStyleCacheOnItemSizeChange && this.props.columnWidth,
         shouldResetStyleCacheOnItemSizeChange && this.props.rowHeight
       );
 
       let style;
-      const { scrollLeft, scrollTop } = this.state;
-      if (stickyRow) {
+      if (stickyRow && stickyCol) {
+        style = {
+          position: 'absolute',
+          left: this._getStickyColumnOffset(columnIndex),
+          top: this._getStickyRowOffset(rowIndex),
+          height: getRowHeight(this.props, rowIndex, this._instanceProps),
+          width: getColumnWidth(this.props, columnIndex, this._instanceProps),
+          zIndex: 30,
+          className: 'sticky-row-col',
+          backgroundColor: 'red',
+        }
+      }
+      else if (stickyRow ) {
         style = {
           position: 'absolute',
           left: getColumnOffset(this.props, columnIndex, this._instanceProps),
-          top: scrollTop,
+          top: this._getStickyRowOffset(rowIndex),
           height: getRowHeight(this.props, rowIndex, this._instanceProps),
           width: getColumnWidth(this.props, columnIndex, this._instanceProps),
-          zIndex: 10,
+          zIndex: 20,
           className: 'sticky-row',
           backgroundColor: 'blue',
         }
@@ -562,11 +599,11 @@ export default function createGridComponent({
       else if (stickyCol) {
         style = {
           position: 'absolute',
-          left: scrollLeft,
+          left: this._getStickyColumnOffset(columnIndex),
           top: getRowOffset(this.props, rowIndex, this._instanceProps),
           height: getRowHeight(this.props, rowIndex, this._instanceProps),
           width: getColumnWidth(this.props, columnIndex, this._instanceProps),
-          zIndex: 20,
+          zIndex: 10,
           className: 'sticky-col',
           backgroundColor: 'green',
         }
@@ -580,12 +617,14 @@ export default function createGridComponent({
           top: getRowOffset(this.props, rowIndex, this._instanceProps),
           height: getRowHeight(this.props, rowIndex, this._instanceProps),
           width: getColumnWidth(this.props, columnIndex, this._instanceProps),
+          zIndex: 1,
         };
         itemStyleCache[key] = style;
       }
 
       return style;
     };
+
 
     _getItemStyleCache: (_: any, __: any) => ItemStyleCache;
     _getItemStyleCache = memoizeOne((_: any, __: any) => ({}));
@@ -627,6 +666,26 @@ export default function createGridComponent({
         startIndex,
         stopIndex,
       ];
+    }
+
+    _getStickyColumnOffset(colIndex: number): number {
+      const { scrollLeft } = this.state;
+      let offset = scrollLeft;
+      while (colIndex >0) {
+        offset += getColumnWidth(this.props, colIndex - 1, this._instanceProps);
+        colIndex--;
+      }
+      return offset;
+    };
+
+    _getStickyRowOffset(rowIndex: number): number {
+      const { scrollTop } = this.state;
+      let offset = scrollTop;
+      while (rowIndex > 0) {
+        offset += getRowHeight(this.props, rowIndex - 1, this._instanceProps);
+        rowIndex--;
+      }
+      return offset;
     }
 
     _getVerticalRangeToRender(): [number, number, number, number] {

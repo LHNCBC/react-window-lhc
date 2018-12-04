@@ -48,7 +48,7 @@ export default function() {
             rowHeight={35}
             width={600}
             stickyColumns={2}
-            stickyRows={2}
+            stickyRows={3}
           >
             {Cell}
           </FixedSizeGrid>
