@@ -67,6 +67,8 @@ export type Props<T> = {|
   style?: Object,
   useIsScrolling: boolean,
   width: number,
+  stickyColumns: number,
+  stickyRows: number,
 |};
 
 type State = {|
@@ -112,8 +114,14 @@ type ValidateProps = (props: Props<any>) => void;
 
 const IS_SCROLLING_DEBOUNCE_INTERVAL = 150;
 
-const defaultItemKey: ItemKeyGetter = ({ columnIndex, rowIndex }) =>
-  `${rowIndex}:${columnIndex}`;
+const defaultItemKey: ItemKeyGetter = ({ columnIndex, rowIndex }) => {
+  // const rowKey = stickyRow ? `S${rowIndex}` : `${rowIndex}`;
+  // const colKey = stickyCol ? `S${columnIndex}` : `${columnIndex}`;
+  //
+  // return `${rowKey}:${colKey}`;
+  // return  `${rowIndex}:${columnIndex}`;
+  return `${rowIndex}:${columnIndex}:${Math.random()}`
+}
 
 export default function createGridComponent({
   getColumnOffset,
@@ -291,6 +299,8 @@ export default function createGridComponent({
         style,
         useIsScrolling,
         width,
+        stickyColumns,
+        stickyRows,
       } = this.props;
       const { isScrolling } = this.state;
 
@@ -298,15 +308,62 @@ export default function createGridComponent({
         columnStartIndex,
         columnStopIndex,
       ] = this._getHorizontalRangeToRender();
-      const [rowStartIndex, rowStopIndex] = this._getVerticalRangeToRender();
+      const [
+        rowStartIndex, 
+        rowStopIndex
+      ] = this._getVerticalRangeToRender();
+
+      console.log('stickyRows:' + stickyRows);
+      console.log('stickyColumns:' + stickyColumns);
+      console.log(rowCount);
+
+
+      //todo: if stickyRows and stickyColumns, create a top-most DIV that always covers the left-top cell.
 
       const items = [];
       if (columnCount > 0 && rowCount) {
+
+        if (stickyRows) {
+          for (
+            let columnIndex = columnStartIndex;
+            columnIndex <= columnStopIndex;
+            columnIndex++
+          ) {
+            items.push(
+              createElement(children, {
+                columnIndex: columnIndex,
+                data: itemData,
+                isScrolling: useIsScrolling ? isScrolling : undefined,
+                key: itemKey({ columnIndex: columnIndex, rowIndex: 0 }),
+                rowIndex: 0,
+                style: this._getItemStyle(0, columnIndex, true, false),
+              })
+            );
+          }
+        }
         for (
           let rowIndex = rowStartIndex;
           rowIndex <= rowStopIndex;
           rowIndex++
         ) {
+          console.log('stickyColumns:' + stickyColumns);
+          console.log(rowIndex);
+          if (stickyColumns) {
+            const { scrollLeft, scrollTop } = this.state;
+            console.log("scrollLeft: " + scrollLeft);
+            console.log("scrollTop: " + scrollTop);
+
+            items.push(
+              createElement(children, {
+                columnIndex: 0,
+                data: itemData,
+                isScrolling: useIsScrolling ? isScrolling : undefined,
+                key: itemKey({ columnIndex: 0, rowIndex }),
+                rowIndex: rowIndex,
+                style: this._getItemStyle(rowIndex, 0, false, true),
+              })
+            );
+          }
           for (
             let columnIndex = columnStartIndex;
             columnIndex <= columnStopIndex;
@@ -474,26 +531,57 @@ export default function createGridComponent({
     // So that pure component sCU will prevent re-renders.
     // We maintain this cache, and pass a style prop rather than index,
     // So that List can clear cached styles and force item re-render if necessary.
-    _getItemStyle: (rowIndex: number, columnIndex: number) => Object;
-    _getItemStyle = (rowIndex: number, columnIndex: number): Object => {
-      const key = `${rowIndex}:${columnIndex}`;
+    _getItemStyle: (rowIndex: number, columnIndex: number, stickyRow: boolean, stickyCol: boolean) => Object;
+    _getItemStyle = (rowIndex: number, columnIndex: number, stickyRow: boolean=false, stickyCol: boolean=false): Object => {
+      const rowKey = stickyRow ? `S${rowIndex}` : `${rowIndex}`;
+      const colKey = stickyCol ? `S${columnIndex}` : `${columnIndex}`;
 
+      const key = `${rowKey}:${colKey}`;
+
+      console.log('stickyCol:' + stickyCol.toString())
+      console.log(key)
       const itemStyleCache = this._getItemStyleCache(
         shouldResetStyleCacheOnItemSizeChange && this.props.columnWidth,
         shouldResetStyleCacheOnItemSizeChange && this.props.rowHeight
       );
 
       let style;
-      if (itemStyleCache.hasOwnProperty(key)) {
+      const { scrollLeft, scrollTop } = this.state;
+      if (stickyRow) {
+        style = {
+          position: 'absolute',
+          left: getColumnOffset(this.props, columnIndex, this._instanceProps),
+          top: scrollTop,
+          height: getRowHeight(this.props, rowIndex, this._instanceProps),
+          width: getColumnWidth(this.props, columnIndex, this._instanceProps),
+          zIndex: 10,
+          className: 'sticky-row',
+          backgroundColor: 'blue',
+        }
+      }
+      else if (stickyCol) {
+        style = {
+          position: 'absolute',
+          left: scrollLeft,
+          top: getRowOffset(this.props, rowIndex, this._instanceProps),
+          height: getRowHeight(this.props, rowIndex, this._instanceProps),
+          width: getColumnWidth(this.props, columnIndex, this._instanceProps),
+          zIndex: 20,
+          className: 'sticky-col',
+          backgroundColor: 'green',
+        }
+      }
+      else if (itemStyleCache.hasOwnProperty(key)) {
         style = itemStyleCache[key];
       } else {
-        itemStyleCache[key] = style = {
+        style = {
           position: 'absolute',
           left: getColumnOffset(this.props, columnIndex, this._instanceProps),
           top: getRowOffset(this.props, rowIndex, this._instanceProps),
           height: getRowHeight(this.props, rowIndex, this._instanceProps),
           width: getColumnWidth(this.props, columnIndex, this._instanceProps),
         };
+        itemStyleCache[key] = style;
       }
 
       return style;

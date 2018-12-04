@@ -14,6 +14,8 @@ const Example = () => (
     rowCount={1000}
     rowHeight={35}
     width={300}
+    stickyColumns={1}
+    stickyRows={1}
   >
     {Cell}
   </Grid>

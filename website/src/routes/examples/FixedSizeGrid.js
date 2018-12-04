@@ -43,10 +43,12 @@ export default function() {
             className={styles.Grid}
             columnCount={1000}
             columnWidth={100}
-            height={150}
+            height={450}
             rowCount={1000}
             rowHeight={35}
-            width={300}
+            width={600}
+            stickyColumns={2}
+            stickyRows={2}
           >
             {Cell}
           </FixedSizeGrid>

@@ -7,6 +7,8 @@ import type { Props, ScrollToAlign } from './createGridComponent';
 const FixedSizeGrid = createGridComponent({
   getColumnOffset: ({ columnWidth }: Props<any>, index: number): number =>
     index * ((columnWidth: any): number),
+  // getColumnOffset: ({ columnWidth, stickyColumns }: Props<any>, index: number): number =>
+  //   stickyColumns && index === 0 ? 0 : index * ((columnWidth: any): number),
 
   getColumnWidth: ({ columnWidth }: Props<any>, index: number): number =>
     ((columnWidth: any): number),
