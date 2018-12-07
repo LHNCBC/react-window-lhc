@@ -3,24 +3,17 @@ import { FixedSizeGrid } from 'react-window';
 import CodeBlock from '../../components/CodeBlock';
 import ProfiledExample from '../../components/ProfiledExample';
 
-import CODE from '../../code/FixedSizeGrid.js';
+import CODE from '../../code/StickyFixedSizeGrid.js';
 
 import styles from './shared.module.css';
 
 class Cell extends PureComponent {
   render() {
-    const { columnIndex, rowIndex, style } = this.props;
+    const { columnIndex, rowIndex, style, className } = this.props;
+    //console.log(this.props)
     return (
       <div
-        className={
-          columnIndex % 2
-            ? rowIndex % 2 === 0
-              ? styles.GridItemOdd
-              : styles.GridItemEven
-            : rowIndex % 2
-              ? styles.GridItemOdd
-              : styles.GridItemEven
-        }
+        className={className}
         style={style}
       >
         Item {rowIndex},{columnIndex}
@@ -46,6 +39,8 @@ export default function() {
             rowCount={1000}
             rowHeight={35}
             width={600}
+            stickyColumns={2}
+            stickyRows={3}
           >
             {Cell}
           </FixedSizeGrid>

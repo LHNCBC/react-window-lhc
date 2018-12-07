@@ -262,7 +262,7 @@ module.exports = {
             use: getStyleLoaders({
               importLoaders: 1,
               modules: true,
-              getLocalIdent: getCSSModuleLocalIdent,
+              //getLocalIdent: getCSSModuleLocalIdent,
             }),
           },
           // Opt-in support for SASS (using .scss or .sass extensions).

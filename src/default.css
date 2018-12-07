@@ -1,0 +1,16 @@
+.StickyRowColCell {
+  z-index: 30;
+  background-color: #FFF;
+}
+.StickyRowCell {
+  z-index: 20;
+  background-color: #FFF;
+}
+.StickyColCell {
+  z-index: 10;
+  background-color:#FFF;
+}
+.GridCell {
+  z-index: 1;
+}
+

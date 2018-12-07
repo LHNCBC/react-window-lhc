@@ -74,6 +74,17 @@
   background-color: #f8f8f0;
 }
 
+
+.StickyRowColCell {
+  background-color: red;
+}
+.StickyRowCell {
+  background-color: blue;
+}
+.StickyColCell {
+  background-color: green;
+}
+
 @media (max-width: 37.5rem) {
   .ExampleWrapper {
     padding: 0;

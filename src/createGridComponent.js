@@ -2,7 +2,7 @@
 
 import memoizeOne from 'memoize-one';
 import { createElement, PureComponent } from 'react';
-
+import './default.css';
 export type ScrollToAlign = 'auto' | 'center' | 'start' | 'end';
 
 type itemSize = number | ((index: number) => number);
@@ -340,6 +340,7 @@ export default function createGridComponent({
                     key: itemKey({ columnIndex: stickyColumnIndex, rowIndex: stickyRowIndex, stickyRow: true, stickyCol: true }),
                     rowIndex: stickyRowIndex,
                     style: this._getItemStyle(stickyRowIndex, stickyColumnIndex, true, true),
+                    className: 'StickyRowColCell', //this._getItemClassName(true, true),
                   })
                 );
               }
@@ -358,6 +359,8 @@ export default function createGridComponent({
                   key: itemKey({ columnIndex: columnIndex, rowIndex: stickyRowIndex, stickyRow: true }),
                   rowIndex: stickyRowIndex,
                   style: this._getItemStyle(stickyRowIndex, columnIndex, true, false),
+                  className: 'StickyRowCell', //this._getItemClassName(true, false),
+
                 })
               );
             }
@@ -386,6 +389,7 @@ export default function createGridComponent({
                     key: itemKey({ columnIndex: stickyColumnIndex, rowIndex, stickyCol: true }),
                     rowIndex: rowIndex,
                     style: this._getItemStyle(rowIndex, stickyColumnIndex, false, true),
+                    className: 'StickyColCell',
                   })
                 );
               }
@@ -406,6 +410,7 @@ export default function createGridComponent({
                 key: itemKey({ columnIndex, rowIndex }),
                 rowIndex,
                 style: this._getItemStyle(rowIndex, columnIndex),
+                className: 'GridCell',
               })
             );
           }
@@ -579,10 +584,7 @@ export default function createGridComponent({
           top: this._getStickyRowOffset(rowIndex),
           height: getRowHeight(this.props, rowIndex, this._instanceProps),
           width: getColumnWidth(this.props, columnIndex, this._instanceProps),
-          zIndex: 30,
-          className: 'sticky-row-col',
-          backgroundColor: 'red',
-        }
+        };
       }
       else if (stickyRow ) {
         style = {
@@ -591,10 +593,7 @@ export default function createGridComponent({
           top: this._getStickyRowOffset(rowIndex),
           height: getRowHeight(this.props, rowIndex, this._instanceProps),
           width: getColumnWidth(this.props, columnIndex, this._instanceProps),
-          zIndex: 20,
-          className: 'sticky-row',
-          backgroundColor: 'blue',
-        }
+        };
       }
       else if (stickyCol) {
         style = {
@@ -603,10 +602,7 @@ export default function createGridComponent({
           top: getRowOffset(this.props, rowIndex, this._instanceProps),
           height: getRowHeight(this.props, rowIndex, this._instanceProps),
           width: getColumnWidth(this.props, columnIndex, this._instanceProps),
-          zIndex: 10,
-          className: 'sticky-col',
-          backgroundColor: 'green',
-        }
+        };
       }
       else if (itemStyleCache.hasOwnProperty(key)) {
         style = itemStyleCache[key];
@@ -617,13 +613,11 @@ export default function createGridComponent({
           top: getRowOffset(this.props, rowIndex, this._instanceProps),
           height: getRowHeight(this.props, rowIndex, this._instanceProps),
           width: getColumnWidth(this.props, columnIndex, this._instanceProps),
-          zIndex: 1,
         };
         itemStyleCache[key] = style;
       }
-
       return style;
-    };
+    }
 
 
     _getItemStyleCache: (_: any, __: any) => ItemStyleCache;
@@ -676,7 +670,7 @@ export default function createGridComponent({
         colIndex--;
       }
       return offset;
-    };
+    }
 
     _getStickyRowOffset(rowIndex: number): number {
       const { scrollTop } = this.state;

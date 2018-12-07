@@ -16,6 +16,7 @@ import ListWithScrollingIndicatorExample from './routes/examples/ListWithScrolli
 import ScrollToItemExample from './routes/examples/ScrollToItem';
 import MemoizedListItemsExample from './routes/examples/MemoizedListItemsExample';
 
+import StickyFixedSizeGridExample from './routes/examples/StickyFixedSizeGrid';
 import styles from './App.module.css';
 
 export default function App() {
@@ -86,6 +87,12 @@ const EXAMPLE_ROUTES = [
     title: 'Memoized List items',
     component: MemoizedListItemsExample,
   },
+  {
+    path: '/examples/grid/sitcky-fixed-size',
+    title: 'Sticky Fixed Size Grid',
+    component: StickyFixedSizeGridExample,
+  },
+
 ];
 
 const API_ROUTES = [
