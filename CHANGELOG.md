@@ -1,5 +1,7 @@
 Changelog
 ------------
+### 1.3.0
+* Added support for multiple fixed columns and rows
 
 ### 1.2.4
 * 🐛 Added Flow annotations to memoized methods to avoid a Flow warning for newer versions of Flow

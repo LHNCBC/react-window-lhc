@@ -2,7 +2,8 @@
 
 > React components for efficiently rendering large lists and tabular data
 
-[![NPM registry](https://img.shields.io/npm/v/react-window.svg?style=for-the-badge)](https://yarnpkg.com/en/package/react-window) [![Travis](https://img.shields.io/badge/ci-travis-green.svg?style=for-the-badge)](https://travis-ci.org/bvaughn/react-window) [![NPM license](https://img.shields.io/badge/license-mit-red.svg?style=for-the-badge)](LICENSE)
+This is a fork of the [react-window](https://github.com/bvaughn/react-window) component, where a few changes (fixed columns and fixed rows) are made to make it work in the [LHC Flowsheet](https://github.com/LHNCBC/flowsheet-lhc) project. This is still a work in progress. This fork is based on v1.2.4 of the original react-window. It might not be compatible to the newer versions of react-window.
+
 
 ## Install
 
